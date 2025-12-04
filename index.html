@@ -4,8 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>ctrlchecks - AI Workflow Builder</title>
+    <!-- Using CDN for Tailwind for simplicity, though package.json allows for local setup -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reactflow@11.11.4/dist/style.css" />
+    <!-- ReactFlow CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/reactflow/dist/style.css" />
     <style>
       body {
         background-color: #0f172a; /* slate-900 */
@@ -46,15 +48,18 @@
   "imports": {
     "react/": "https://aistudiocdn.com/react@^19.2.1/",
     "react": "https://aistudiocdn.com/react@^19.2.1",
-    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.30.0",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.1/",
-    "reactflow/": "https://aistudiocdn.com/reactflow@^11.11.4/",
-    "reactflow": "https://aistudiocdn.com/reactflow@^11.11.4"
+    "@google/genai": "https://aistudiocdn.com/@google/genai@^1.31.0",
+    "vite": "https://aistudiocdn.com/vite@^7.2.6",
+    "reactflow": "https://aistudiocdn.com/reactflow@^11.11.4",
+    "reactflow/": "https://aistudiocdn.com/reactflow@^11.11.4/"
   }
 }
 </script>
 </head>
   <body>
     <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
   </body>
 </html>
