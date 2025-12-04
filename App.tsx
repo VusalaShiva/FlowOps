@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from 'react';
+import React, { useState, useRef, useCallback, useEffect } from 'react';
 import ReactFlow, {
   ReactFlowProvider,
   addEdge,
@@ -19,6 +19,7 @@ import Sidebar from './components/Sidebar';
 import PropertiesPanel from './components/PropertiesPanel';
 import ExecutionPanel from './components/ExecutionPanel';
 import CustomNode from './components/nodes/CustomNode';
+import OnboardingTour from './components/OnboardingTour';
 import { NodeType, NodeStatus, ExecutionLog, MemoryMessage } from './types';
 import { ExecutionEngine } from './services/executionEngine';
 
@@ -65,7 +66,12 @@ const initialEdges: Edge[] = [
     { id: 'e1-2', source: 'start-1', target: 'llm-1', animated: true, style: { stroke: '#94a3b8', strokeWidth: 2 } }
 ];
 
-const FlowArea = ({ logs, setLogs, isRunning, setIsRunning, selectedNodeId, setSelectedNodeId, sessionMemory, setSessionMemory }: any) => {
+const FlowArea = ({ 
+    logs, setLogs, isRunning, setIsRunning, 
+    selectedNodeId, setSelectedNodeId, 
+    sessionMemory, setSessionMemory,
+    isTourOpen, closeTour, openTour
+}: any) => {
     const reactFlowWrapper = useRef<HTMLDivElement>(null);
     const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
     const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
@@ -193,7 +199,7 @@ const FlowArea = ({ logs, setLogs, isRunning, setIsRunning, selectedNodeId, setS
 
     return (
         <div className="flex flex-1 overflow-hidden h-full">
-            <Sidebar />
+            <Sidebar onOpenTour={openTour} />
             
             <div className="flex-1 h-full relative flex flex-col">
                 <div className="flex-1 relative" ref={reactFlowWrapper}>
@@ -272,6 +278,8 @@ const FlowArea = ({ logs, setLogs, isRunning, setIsRunning, selectedNodeId, setS
             </div>
 
             <PropertiesPanel node={selectedNode} onChange={updateNodeData} onDelete={handleDeleteNode} />
+            
+            <OnboardingTour isOpen={isTourOpen} onClose={closeTour} />
         </div>
     );
 };
@@ -281,6 +289,20 @@ const App = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [sessionMemory, setSessionMemory] = useState<MemoryMessage[]>([]);
+  const [isTourOpen, setIsTourOpen] = useState(false);
+
+  useEffect(() => {
+    // Show tour every time the app loads (per user request)
+    setTimeout(() => setIsTourOpen(true), 500);
+  }, []);
+
+  const closeTour = () => {
+      setIsTourOpen(false);
+  };
+
+  const openTour = () => {
+      setIsTourOpen(true);
+  };
 
   return (
     <ReactFlowProvider>
@@ -294,6 +316,9 @@ const App = () => {
           setSelectedNodeId={setSelectedNodeId}
           sessionMemory={sessionMemory}
           setSessionMemory={setSessionMemory}
+          isTourOpen={isTourOpen}
+          closeTour={closeTour}
+          openTour={openTour}
         />
       </div>
     </ReactFlowProvider>

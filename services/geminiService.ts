@@ -9,13 +9,8 @@ export const generateText = async (
   history: MemoryMessage[] = []
 ): Promise<string> => {
   // process.env.API_KEY is replaced by Vite at build time based on .env file configuration
-  const API_KEY = process.env.API_KEY;
-  
-  if(!API_KEY) {
-      throw new Error("Missing Gemini API Key. Please add API_KEY to your .env file.");
-  }
-
-  const ai = new GoogleGenAI({ apiKey: API_KEY });
+  // The API key must be obtained exclusively from the environment variable process.env.API_KEY.
+  const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
 
   try {
     // Transform memory history into Gemini Content format

@@ -39,11 +39,12 @@ export class ExecutionEngine {
 
   private evaluateExpression(expression: string, input: any): any {
     try {
+      // Basic safety check could be added here, but for workflow tools, users often need full power.
       const func = new Function('input', 'context', `return ${expression};`);
       return func(input, this.context);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Expression Eval Error", err);
-      return null;
+      throw new Error(`Condition failed: ${err.message}`);
     }
   }
 
@@ -80,7 +81,7 @@ export class ExecutionEngine {
           const { model, prompt, systemInstruction, temperature, useMemory, memoryWindow } = node.data.config;
           
           // Interpolate prompt
-          const interpolatedPrompt = prompt.replace(/\{\{input\}\}/g, typeof inputData === 'string' ? inputData : JSON.stringify(inputData));
+          const interpolatedPrompt = (prompt || '').replace(/\{\{input\}\}/g, typeof inputData === 'string' ? inputData : JSON.stringify(inputData));
           
           // Prepare Memory Context
           let history: MemoryMessage[] = [];
@@ -129,15 +130,36 @@ export class ExecutionEngine {
 
         case NodeType.HTTP:
             const { url, method, body } = node.data.config;
-            const headers = node.data.config.headers ? JSON.parse(node.data.config.headers) : {};
+            let headers = {};
+            if (node.data.config.headers) {
+                try {
+                    headers = JSON.parse(node.data.config.headers);
+                } catch (e) {
+                    throw new Error("Invalid JSON in Headers field");
+                }
+            }
+            
+            if (!url) throw new Error("URL is required for HTTP Request");
+
             const finalUrl = url.replace(/\{\{input\}\}/g, encodeURIComponent(JSON.stringify(inputData)));
 
             const response = await fetch(finalUrl, {
-                method,
+                method: method || 'GET',
                 headers: { 'Content-Type': 'application/json', ...headers },
-                body: method !== 'GET' ? body : undefined
+                body: (method !== 'GET' && method !== 'HEAD') ? body : undefined
             });
-            outputData = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(`HTTP Error: ${response.status} ${response.statusText}`);
+            }
+            
+            // Try to parse JSON, fall back to text
+            const text = await response.text();
+            try {
+                outputData = JSON.parse(text);
+            } catch {
+                outputData = { text };
+            }
             break;
 
         case NodeType.DELAY:
