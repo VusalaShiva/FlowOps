@@ -8,15 +8,11 @@ export const generateText = async (
   temperature: number = 0.7,
   history: MemoryMessage[] = []
 ): Promise<string> => {
-  let API_KEY = '';
-  try {
-    if (typeof process !== 'undefined' && process.env && process.env.API_KEY) {
-        API_KEY = process.env.API_KEY;
-    }
-  } catch(e) {}
+  // process.env.API_KEY is replaced by Vite at build time based on .env file configuration
+  const API_KEY = process.env.API_KEY;
   
   if(!API_KEY) {
-      throw new Error("Missing Gemini API Key. Please configure process.env.API_KEY.");
+      throw new Error("Missing Gemini API Key. Please add API_KEY to your .env file.");
   }
 
   const ai = new GoogleGenAI({ apiKey: API_KEY });
@@ -28,11 +24,6 @@ export const generateText = async (
         role: msg.role,
         parts: msg.parts
     }));
-
-    // For single turn or chat, we can use generateContent.
-    // However, if history exists, we should technically consider it a chat.
-    // The @google/genai SDK v1.30 unified generateContent can handle history if passed manually 
-    // or we can use `contents` array with multiple turns.
 
     const contents = [
         ...pastContent,
